@@ -7,21 +7,28 @@
   "scripts": {
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run build && node dist/index.js"
+    "start": "npm run build && node dist/index.js",
+    "create_db": "dotenv -e .env psql -U $DB_USER -f db/schema.sql",
+    "seed_db": "dotenv -e .env psql -U $DB_USER -d $DB_NAME -f db/seeds.sql",
+    "setup_db": "npm run create_db && npm run seed_db"
   },
   "dependencies": {
     "colors": "^1.4.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.17.1",
     "inquirer": "^8.2.4",
-    "pg": "^8.11.3",
-    "dotenv": "^16.4.5"
+    "pg": "^8.11.3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/pg": "^8.11.6",
-    "typescript": "^5.7.3",
+    "@types/express": "^4.17.21",
     "@types/inquirer": "^9.0.7",
-    "@types/node": "^20.12.7"
+    "@types/node": "^20.12.7",
+    "@types/pg": "^8.11.6",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^8.0.0",
+    "typescript": "^5.7.3"
   }
 }
