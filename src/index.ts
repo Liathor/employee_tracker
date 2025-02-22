@@ -1,6 +1,8 @@
 // Packages being imported
 import inquirer from 'inquirer';
 import colors from 'colors';
+import { QueryResult } from 'pg';
+import { pool, connectToDb } from './connection.js';
 
 // Questions Array for Inquirer
 const mainScreen = (): void => {
