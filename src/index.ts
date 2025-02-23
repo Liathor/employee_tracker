@@ -55,6 +55,7 @@ const viewDepartments = async (): Promise<void> => {
   try {
     // Create a table to display the departments
     const result: QueryResult = await pool.query('SELECT * FROM department');
+
     const table = new Table({
       head: ['ID', 'Name'],
       colWidths: [10, 20]
@@ -166,41 +167,58 @@ const viewEmployees = async (): Promise<void> => {
 // Function to add a department
 const addDepartment = async (): Promise<void> => {
   try {
-    // Create a table to display the employees
-    const result: QueryResult = await pool.query('SELECT * FROM employee JOIN role ON employee.role_id = role.id');
-    const table = new Table({
-      head: ['ID', 'First Name', 'Last Name', 'Role ID', 'Manager ID'],
-      colWidths: [10, 20, 20, 10, 10]
-    });
-    result.rows.forEach(row => {
-      table.push([row.id, row.first_name, row.last_name, row.role_id, row.manager_id]);
-    });
-    console.log(table.toString());
-
-    // Prompt the user to return to the main menu
-
-    const backButton = await inquirer
+    const departmentInput = await inquirer
       .prompt([
         {
-          type: 'list',
-          name: 'back',
-          message: colors.blue('Return to main menu?'),
-          choices: [
-            'Return',],
+          type: 'input',
+          name: 'departmentName',
+          message: colors.blue('Enter the name of the new department:'),
         },
       ])
-        if (backButton.back === 'Return') {
-          mainScreen();
-        }
-    } catch (err) {
-      console.log('Problem encountered fetching employee data:', err);
-    } 
+    await pool.query('INSERT INTO department (name) VALUES ($1)', [departmentInput.departmentName]);
+    console.log('Department added successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered adding department:', err);
+  }
 }
 
-const addRole = async () => {
-  console.log('Add a role function not implemented yet.');
-  mainScreen();
-};
+// Function to add a role
+const addRole = async (): Promise<void> => {
+  try {
+    const departmentResult = await pool.query('SELECT * FROM department');
+    const departmentChoices = departmentResult.rows.map((row) => ({
+      name: row.name, 
+      value: row.id,
+    }));
+    
+    const roleInput = await inquirer
+      .prompt([
+        {
+          type: 'input',
+          name: 'titleName',
+          message: colors.blue('Enter the title of the new role:'),
+        },
+        {
+          type: 'input',
+          name: 'salary',
+          message: colors.blue('Enter the salary of the new role:'),
+        },
+        {
+          type: 'list',
+          name: 'idValue',
+          message: colors.blue('Which department does this role belong to:'),
+          choices: departmentChoices,
+        },
+      ])
+    await pool.query('INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)', 
+      [roleInput.titleName, roleInput.salary, roleInput.idValue]);
+    console.log('Role added successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered adding role:', err);
+  }
+}
 
 const addEmployee = async () => {
   console.log('Add an employee function not implemented yet.');
