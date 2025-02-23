@@ -1,5 +1,5 @@
 -- Seed data for departments table--
-INSERT INTO departments (name) VALUES 
+INSERT INTO department (name) VALUES 
 ('HR'),
 ('Engineering'),
 ('Finance'),

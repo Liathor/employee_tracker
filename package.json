@@ -13,11 +13,12 @@
     "setup_db": "npm run create_db && npm run seed_db"
   },
   "dependencies": {
+    "cli-table3": "^0.6.5",
     "colors": "^1.4.0",
     "dotenv": "^16.4.7",
     "express": "^4.17.1",
     "inquirer": "^8.2.4",
-    "pg": "^8.11.3"
+    "pg": "^8.13.3"
   },
   "keywords": [],
   "author": "",
