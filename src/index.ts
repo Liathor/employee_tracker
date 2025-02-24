@@ -220,13 +220,58 @@ const addRole = async (): Promise<void> => {
   }
 }
 
-const addEmployee = async () => {
-  console.log('Add an employee function not implemented yet.');
-  mainScreen();
-};
+// Function to add an employee
+const addEmployee = async (): Promise<void> => {
+  try {
+    const roleResult = await pool.query('SELECT * FROM role');
+    const roleChoices = roleResult.rows.map((row) => ({
+      title: row.title, 
+      value: row.id,
+    }));
+    const managerResult = await pool.query('SELECT * FROM employee');
+    const managerChoices = managerResult.rows.map((row) => ({
+      first_name: row.first_name,
+      last_name: row.last_name, 
+      value: row.id,
+    }));
+    
+    const roleInput = await inquirer
+      .prompt([
+        {
+          type: 'input',
+          name: 'firstName',
+          message: colors.blue('Enter the first name of the new employee:'),
+        },
+        {
+          type: 'input',
+          name: 'lastName',
+          message: colors.blue('Enter the last name of the new employee:'),
+        },
+        {
+          type: 'list',
+          name: 'role',
+          message: colors.blue('Which role does the new employee have:'),
+          choices: roleChoices,
+        },
+        {
+          type: 'list',
+          name: 'manager',
+          message: colors.blue('Which manager does the new employee report to:'),
+          choices: managerChoices,
+        },
+      ])
+    await pool.query('INSERT INTO role (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)', 
+      [roleInput.firstName, roleInput.lastName, roleInput.role, roleInput.manager]);
+    console.log('Employee added successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered adding employee:', err);
+  }
+}
 
 const updateEmployeeRole = async () => {
   console.log('Update an employee role function not implemented yet.');
+
   mainScreen();
 };
 
