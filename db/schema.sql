@@ -8,7 +8,7 @@ CREATE DATABASE employees_db;
 -- Create tables for employees database--
 CREATE TABLE department (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(30) NOT NULL
+  name VARCHAR(30) UNIQUE NOT NULL
 );
 
 CREATE TABLE role (
