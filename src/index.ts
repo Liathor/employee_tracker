@@ -52,6 +52,7 @@ const mainScreen = (): void => {
             'Delete a department',
             'Delete a role',
             'Delete an employee',
+            'View utilized budget of a department',
             'Exit',
           ].map(choice => colors.magenta(choice)),
         },
@@ -84,6 +85,8 @@ const mainScreen = (): void => {
           deleteRole();
         } else if (selectedAction === 'Delete an employee') {
           deleteEmployee();
+        } else if (selectedAction === 'View utilized budget of a department') {
+          viewBudget();
         } else if (selectedAction === 'Exit') {
           console.log('Exiting program...');
           process.exit(0);
@@ -636,7 +639,49 @@ const deleteEmployee = async (): Promise<void> => {
   }
 }
 
-// Delete departments, roles, and employees.
+// Function to view utilized budget of a department
+const viewBudget = async (): Promise<void> => {
+  clearConsole();
+  try {
+    // Create a table to display the departments
+    const result: QueryResult = await pool.query(`
+      SELECT 
+        d.id, 
+        d.name, 
+        SUM(COALESCE(r.salary, 0)) AS budget
+      FROM department d
+      JOIN role r ON d.id = r.department_id
+      JOIN employee e ON r.id = e.role_id
+      GROUP BY d.id, d.name;`);
+
+    const table = new Table({
+      head: ['ID', 'Name', 'Budget'],
+      colWidths: [10, 20, 30]
+    });
+    result.rows.forEach(row => {
+      table.push([row.id, row.name, row.budget]);
+    });
+    console.log(table.toString());
+
+    // Prompt the user to return to the main menu
+
+    const backButton = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'back',
+          message: colors.blue('Return to main menu?'),
+          choices: [
+            'Return',],
+        },
+      ])
+        if (backButton.back === 'Return') {
+          mainScreen();
+        }
+    } catch (err) {
+      console.log('Problem encountered fetching department data:', err);
+    } 
+}
 
 // View the total utilized budget of a department—in other words, the combined salaries of all employees in that department.
 
