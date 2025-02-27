@@ -48,6 +48,7 @@ const mainScreen = (): void => {
             'Update an employee role',
             'Update an employee manager',
             'View employees by manager',
+            'View employees by department',
             'Exit',
           ].map(choice => colors.magenta(choice)),
         },
@@ -72,6 +73,8 @@ const mainScreen = (): void => {
           updateEmployeeManager();
         } else if (selectedAction === 'View employees by manager') {
           viewEmployeesManager();
+        } else if (selectedAction === 'View employees by department') {
+          viewEmployeesDepartment();
         } else if (selectedAction === 'Exit') {
           console.log('Exiting program...');
           process.exit(0);
@@ -381,8 +384,6 @@ const updateEmployeeRole = async () => {
   mainScreen();
 };
 
-
-// Update employee managers.
 // Function to update an employee role
 const updateEmployeeManager = async () => {
   clearConsole();
@@ -454,7 +455,6 @@ const viewEmployeesManager = async (): Promise<void> => {
         ORDER BY e.id;
         `,
         [managerEmployees.selectManager]); 
-        console.log(managerEmployees.selectManager);
         const table = new Table({
           head: ['ID', 'First Name', 'Last Name', 'Role'],
           colWidths: [10, 20, 20, 30]
@@ -484,7 +484,68 @@ const viewEmployeesManager = async (): Promise<void> => {
     } 
 }
 
-// View employees by manager.
+// Function to view all employees by department
+const viewEmployeesDepartment = async (): Promise<void> => {
+  clearConsole();
+  try {
+    const departmentResult = await pool.query('SELECT * FROM department');
+    const departmentChoices = departmentResult.rows.map((row) => ({
+      name: row.name, 
+      value: row.id,
+    }));
+
+    const departmentEmployees = await inquirer
+    .prompt([
+      {
+        type: 'list',
+        name: 'selectDepartment',
+        message: colors.blue('Select the department to display employees:'),
+        choices: departmentChoices,
+      },
+    ])
+    const result = await pool.query(`
+      SELECT 
+        e.id, 
+        e.first_name, 
+        e.last_name, 
+        r.title, 
+        COALESCE(m.first_name || ' ' || m.last_name, '') AS manager_name
+        FROM employee e
+        JOIN role r ON e.role_id = r.id
+        JOIN department d ON r.department_id = d.id
+        LEFT JOIN employee m ON e.manager_id = m.id  -- Self-join to get manager info
+        WHERE department_id = $1
+        ORDER BY e.id;
+    `,
+        [departmentEmployees.selectDepartment]); 
+        const table = new Table({
+          head: ['ID', 'First Name', 'Last Name', 'Role'],
+          colWidths: [10, 20, 20, 30, 30]
+        });
+        result.rows.forEach(row => {
+          table.push([row.id, row.first_name, row.last_name, row.title, row.manager_name]);
+        });
+        console.log(table.toString());
+
+    // Prompt the user to return to the main menu
+
+    const backButton = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'back',
+          message: colors.blue('Return to main menu?'),
+          choices: [
+            'Return',],
+        },
+      ])
+        if (backButton.back === 'Return') {
+          mainScreen();
+        }
+    } catch (err) {
+      console.log('Problem encountered fetching employee data:', err);
+    } 
+}
 
 // View employees by department.
 
