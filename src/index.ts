@@ -47,6 +47,7 @@ const mainScreen = (): void => {
             'Add an employee',
             'Update an employee role',
             'Update an employee manager',
+            'View employees by manager',
             'Exit',
           ].map(choice => colors.magenta(choice)),
         },
@@ -69,6 +70,8 @@ const mainScreen = (): void => {
           updateEmployeeRole();
         } else if (selectedAction === 'Update an employee manager') {
           updateEmployeeManager();
+        } else if (selectedAction === 'View employees by manager') {
+          viewEmployeesManager();
         } else if (selectedAction === 'Exit') {
           console.log('Exiting program...');
           process.exit(0);
@@ -419,6 +422,67 @@ const updateEmployeeManager = async () => {
 
   mainScreen();
 };
+
+// Function to view all employees by manager
+const viewEmployeesManager = async (): Promise<void> => {
+  clearConsole();
+  try {
+    const employeeTable = await pool.query('SELECT * FROM employee');
+    const managerChoices = employeeTable.rows.map((row) => ({
+      name: `${row.first_name} ${row.last_name}`,
+      value: row.id,
+    }));
+
+    const managerEmployees = await inquirer
+    .prompt([
+      {
+        type: 'list',
+        name: 'selectManager',
+        message: colors.blue('Select the manager to display employees:'),
+        choices: managerChoices,
+      },
+    ])
+    const result = await pool.query(`
+      SELECT 
+        e.id, 
+        e.first_name, 
+        e.last_name, 
+        r.title 
+        FROM employee e
+        JOIN role r ON e.role_id = r.id
+        WHERE e.manager_id = $1
+        ORDER BY e.id;
+        `,
+        [managerEmployees.selectManager]); 
+        console.log(managerEmployees.selectManager);
+        const table = new Table({
+          head: ['ID', 'First Name', 'Last Name', 'Role'],
+          colWidths: [10, 20, 20, 30]
+        });
+        result.rows.forEach(row => {
+          table.push([row.id, row.first_name, row.last_name, row.title]);
+        });
+        console.log(table.toString());
+
+    // Prompt the user to return to the main menu
+
+    const backButton = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'back',
+          message: colors.blue('Return to main menu?'),
+          choices: [
+            'Return',],
+        },
+      ])
+        if (backButton.back === 'Return') {
+          mainScreen();
+        }
+    } catch (err) {
+      console.log('Problem encountered fetching employee data:', err);
+    } 
+}
 
 // View employees by manager.
 
