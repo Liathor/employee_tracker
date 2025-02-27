@@ -46,6 +46,7 @@ const mainScreen = (): void => {
             'Add a role',
             'Add an employee',
             'Update an employee role',
+            'Update an employee manager',
             'Exit',
           ].map(choice => colors.magenta(choice)),
         },
@@ -66,6 +67,8 @@ const mainScreen = (): void => {
           addEmployee();
         } else if (selectedAction === 'Update an employee role') {
           updateEmployeeRole();
+        } else if (selectedAction === 'Update an employee manager') {
+          updateEmployeeManager();
         } else if (selectedAction === 'Exit') {
           console.log('Exiting program...');
           process.exit(0);
@@ -374,6 +377,56 @@ const updateEmployeeRole = async () => {
 
   mainScreen();
 };
+
+
+// Update employee managers.
+// Function to update an employee role
+const updateEmployeeManager = async () => {
+  clearConsole();
+  try {
+    const employeeTable = await pool.query('SELECT * FROM employee');
+    const employeeChoices = employeeTable.rows.map((row) => ({
+      name: `${row.first_name} ${row.last_name}`,
+      value: row.id,
+    }));
+    const managerChoices = employeeTable.rows.map((row) => ({
+      name: `${row.first_name} ${row.last_name}`,
+      value: row.id,
+    }));
+    managerChoices.unshift({ name: '>> NO MANAGER <<', value: null });
+  const employeeManagerUpdate = await inquirer
+    .prompt([
+      {
+        type: 'list',
+        name: 'selectEmployee',
+        message: colors.blue('Select the employee to update:'),
+        choices: employeeChoices,
+      },
+      {
+        type: 'list',
+        name: 'selectManager',
+        message: colors.blue('Select the new manager for the employee:'),
+        choices: managerChoices,
+      }
+    ])
+    await pool.query('UPDATE employee SET manager_id = $1 WHERE id = $2', 
+      [employeeManagerUpdate.selectManager, employeeManagerUpdate.selectEmployee]);
+    console.log('Employee role updated successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered updating employee manager:', err);
+  }
+
+  mainScreen();
+};
+
+// View employees by manager.
+
+// View employees by department.
+
+// Delete departments, roles, and employees.
+
+// View the total utilized budget of a department—in other words, the combined salaries of all employees in that department.
 
 // Call the main screen function to start the program
 mainScreen();
