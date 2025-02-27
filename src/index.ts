@@ -49,6 +49,9 @@ const mainScreen = (): void => {
             'Update an employee manager',
             'View employees by manager',
             'View employees by department',
+            'Delete a department',
+            'Delete a role',
+            'Delete an employee',
             'Exit',
           ].map(choice => colors.magenta(choice)),
         },
@@ -75,6 +78,12 @@ const mainScreen = (): void => {
           viewEmployeesManager();
         } else if (selectedAction === 'View employees by department') {
           viewEmployeesDepartment();
+        } else if (selectedAction === 'Delete a department') {
+          deleteDepartment();
+        } else if (selectedAction === 'Delete a role') {
+          deleteRole();
+        } else if (selectedAction === 'Delete an employee') {
+          deleteEmployee();
         } else if (selectedAction === 'Exit') {
           console.log('Exiting program...');
           process.exit(0);
@@ -547,7 +556,85 @@ const viewEmployeesDepartment = async (): Promise<void> => {
     } 
 }
 
-// View employees by department.
+// Function to delete a department
+const deleteDepartment = async (): Promise<void> => {
+  clearConsole();
+  try {
+    const departmentResult = await pool.query('SELECT * FROM department');
+    const departmentChoices = departmentResult.rows.map((row) => ({
+      name: row.name, 
+      value: row.id,
+    }));
+
+    const departmentDelete = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'selectDepartment',
+          message: colors.blue('Select the department to delete:'),
+          choices: departmentChoices,
+        },
+      ])
+    await pool.query('DELETE FROM department WHERE id = $1', [departmentDelete.selectDepartment]);
+    console.log('Department deleted successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered deleting department:', err);
+  }
+}
+
+// Function to delete a role
+const deleteRole = async (): Promise<void> => {
+  clearConsole();
+  try {
+    const roleResult = await pool.query('SELECT * FROM role');
+    const roleChoices = roleResult.rows.map((row) => ({
+      name: row.title, 
+      value: row.id,
+    }));
+
+    const roleDelete = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'selectRole',
+          message: colors.blue('Select the role to delete:'),
+          choices: roleChoices,
+        },
+      ])
+    await pool.query('DELETE FROM role WHERE id = $1', [roleDelete.selectRole]);
+    console.log('Role deleted successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered deleting role:', err);
+  }
+}
+
+const deleteEmployee = async (): Promise<void> => {
+  clearConsole();
+  try {
+    const employeeResult = await pool.query('SELECT * FROM employee');
+    const employeeChoices = employeeResult.rows.map((row) => ({
+      name: `${row.first_name} ${row.last_name}`, 
+      value: row.id,
+    }));
+
+    const employeeDelete = await inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'selectEmployee',
+          message: colors.blue('Select the employee to delete:'),
+          choices: employeeChoices,
+        },
+      ])
+    await pool.query('DELETE FROM employee WHERE id = $1', [employeeDelete.selectEmployee]);
+    console.log('Employee deleted successfully!');
+    mainScreen();
+  } catch (err) {
+    console.log('Problem encountered deleting employee:', err);
+  }
+}
 
 // Delete departments, roles, and employees.
 
